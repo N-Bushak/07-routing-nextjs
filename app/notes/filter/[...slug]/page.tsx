@@ -9,9 +9,9 @@ import NotesClient from './Notes.client';
 export default async function NotesPage({
   params,
 }: {
-  params: { slug?: string[] };
+  params: Promise<{ slug: string[] }>;
 }) {
-  const slug = params.slug ?? [];
+  const { slug } = await params;
   const tag = slug.length > 0 ? slug[0] : 'all';
 
   const queryClient = new QueryClient();

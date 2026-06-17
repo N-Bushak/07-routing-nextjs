@@ -1,25 +1,14 @@
-
-export interface Category {
-  id: string;
-  name: string;
-}
-
 export interface Note {
   id: string;
   title: string;
   content: string;
   createdAt: string;
   updatedAt: string;
-  categoryId: string;
-  category?: Category;
+  tag: string;   
 }
 
 export interface NewNote {
   title: string;
   content: string;
-  categoryId: string;
-}
-
-export interface NoteWithTag extends Note {
-  tag: string;
+  tag: string;  
 }

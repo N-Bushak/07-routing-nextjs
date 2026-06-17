@@ -56,21 +56,20 @@ export default function NotesClient({ tag }: NotesClientProps) {
         </button>
       </header>
 
-    <main>
-  {notes.length > 0 ? (
-    <NoteList
-      notes={notes}
-      isUpdating={isPlaceholderData}
-      isLoading={isLoading}
-      isError={isError}
-    />
-  ) : (
-    !isLoading && !isError && (
-      <p className={css.empty}>No notes found</p>
-    )
-  )}
-</main>
-
+      <main>
+        {notes.length > 0 ? (
+          <NoteList
+            notes={notes}
+            isUpdating={isPlaceholderData}
+            isLoading={isLoading}
+            isError={isError}
+          />
+        ) : (
+          !isLoading && !isError && (
+            <p className={css.empty}>No notes found</p>
+          )
+        )}
+      </main>
 
       {isModalOpen && (
         <Modal onClose={() => setIsModalOpen(false)}>

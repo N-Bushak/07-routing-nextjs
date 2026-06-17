@@ -2,9 +2,8 @@ import { ErrorMessage, Field, Form, Formik, type FormikHelpers } from 'formik';
 import css from './NoteForm.module.css';
 import { useId } from 'react';
 import * as Yup from 'yup';
-import { createNote, fetchCategories } from '@/lib/api';
-import { type Category } from '@/types/note';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { createNote } from '@/lib/api';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 interface NoteFormProps {
   onClose: () => void;
@@ -28,17 +27,12 @@ const FormSchema = Yup.object().shape({
     .max(50, 'Title too long')
     .required('Title is required'),
   content: Yup.string().max(500, 'Content is too long'),
-  tag: Yup.string().required('Category is required'),
+  tag: Yup.string().required('Tag is required'),
 });
 
 export default function NoteForm({ onClose }: NoteFormProps) {
   const fieldID = useId();
   const queryClient = useQueryClient();
-
-  const { data: categories = [] } = useQuery({
-    queryKey: ['categories'],
-    queryFn: fetchCategories,
-  });
 
   const mutation = useMutation({
     mutationFn: (payload: NewNote) => createNote(payload),
@@ -88,20 +82,14 @@ export default function NoteForm({ onClose }: NoteFormProps) {
         </div>
 
         <div className={css.formGroup}>
-          <label htmlFor={`${fieldID}-category`}>Category</label>
+          <label htmlFor={`${fieldID}-tag`}>Tag</label>
           <Field
-            as="select"
-            id={`${fieldID}-category`}
+            id={`${fieldID}-tag`}
+            type="text"
             name="tag"
-            className={css.select}
-          >
-            <option value="">Select category</option>
-            {categories.map((cat: Category) => (
-              <option key={cat.id} value={cat.name}>
-                {cat.name}
-              </option>
-            ))}
-          </Field>
+            className={css.input}
+            placeholder="Enter tag (e.g. Work, Personal)"
+          />
           <ErrorMessage component="span" name="tag" className={css.error} />
         </div>
 
