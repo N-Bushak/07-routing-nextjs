@@ -12,10 +12,10 @@ import Modal from '../../../../components/Modal/Modal';
 import NoteList from '../../../../components/NoteList/NoteList';
 
 interface NotesClientProps {
-  categoryId: string;
+  tag: string;
 }
 
-export default function NotesClient({ categoryId }: NotesClientProps) {
+export default function NotesClient({ tag }: NotesClientProps) {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -27,8 +27,8 @@ export default function NotesClient({ categoryId }: NotesClientProps) {
   }, 500);
 
   const { data, isLoading, isError, isPlaceholderData } = useQuery({
-    queryKey: ['notes', page, search, categoryId],
-    queryFn: () => fetchNotes(page, perPage, search, categoryId),
+    queryKey: ['notes', page, search, tag],
+    queryFn: () => fetchNotes(page, perPage, search, tag),
     placeholderData: keepPreviousData,
     refetchOnMount: false,
   });
@@ -56,14 +56,21 @@ export default function NotesClient({ categoryId }: NotesClientProps) {
         </button>
       </header>
 
-      <main>
-        <NoteList
-          notes={notes}
-          isUpdating={isPlaceholderData}
-          isLoading={isLoading}
-          isError={isError}
-        />
-      </main>
+    <main>
+  {notes.length > 0 ? (
+    <NoteList
+      notes={notes}
+      isUpdating={isPlaceholderData}
+      isLoading={isLoading}
+      isError={isError}
+    />
+  ) : (
+    !isLoading && !isError && (
+      <p className={css.empty}>No notes found</p>
+    )
+  )}
+</main>
+
 
       {isModalOpen && (
         <Modal onClose={() => setIsModalOpen(false)}>

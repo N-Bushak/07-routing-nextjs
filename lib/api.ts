@@ -1,10 +1,13 @@
 import axios, { AxiosResponse } from 'axios';
-import { Note } from '@/types/note';
+import { Note, Category } from '@/types/note';
 
-interface CreateNoteDto {
-  title: string;
-  content: string;
-  categoryId: string; 
+export interface NoteWithTag extends Note {
+  tag?: string;
+}
+
+export interface FetchNotesResponse {
+  notes: NoteWithTag[];
+  totalPages: number;
 }
 
 const api = axios.create({
@@ -14,55 +17,70 @@ const api = axios.create({
   },
 });
 
-export interface FetchNotesResponse {
-  notes: Note[];
-  totalPages: number;
-}
+let categoriesCache: Category[] = [];
+
+export const fetchCategories = async (): Promise<Category[]> => {
+  const { data } = await api.get<Category[]>('/categories');
+  categoriesCache = data;
+  return data;
+};
 
 export const fetchNotes = async (
   page: number = 1,
   perPage: number = 12,
   search: string = '',
-  categoryId?: string
+  tag?: string
 ): Promise<FetchNotesResponse> => {
-  const params: Record<string, string | number> = {
-    page,
-    perPage,
-  };
+  console.log('fetchNotes called with tag:', tag);
 
-  if (search) {
-    params.search = search;
-  }
+  const params: Record<string, string | number> = { page, perPage };
+  if (search) params.search = search;
 
-  if (categoryId && categoryId !== 'all') {
-    params.categoryId = categoryId;
+  if (tag && tag !== 'all') {
+    console.log('Categories cache:', categoriesCache);
+    const category = categoriesCache.find(c => c.name.toLowerCase() === tag.toLowerCase());
+    console.log('Matched category:', category);
+    if (category) params.categoryId = category.id;
   }
 
   const { data } = await api.get<FetchNotesResponse>('/notes', { params });
-  return data;
+  console.log('API response:', data);
+
+  const notesWithTag = data.notes.map(note => ({
+    ...note,
+    tag: note.category?.name,
+  }));
+
+  return { ...data, notes: notesWithTag };
 };
 
-export const fetchNoteById = async (id: string): Promise<Note> => {
+
+export const fetchNoteById = async (id: string): Promise<NoteWithTag> => {
   const { data } = await api.get<Note>(`/notes/${id}`);
-  return data;
+  return { ...data, tag: data.category?.name };
 };
 
-export const createNote = async (data: CreateNoteDto): Promise<Note> => {
-  const response = await api.post<Note, AxiosResponse<Note>, CreateNoteDto>('/notes', data);
-  return response.data;
-};
-
-export const deleteNote = async (id: string): Promise<Note> => {
-  const { data } = await api.delete<Note>(`/notes/${id}`);
-  return data;
-};
-
-export interface Category {
-  id: string;
-  name: string;
+interface CreateNoteDto {
+  title: string;
+  content: string;
+  tag: string;
 }
 
-export const fetchCategories = async (): Promise<Category[]> => {
-  const { data } = await api.get<Category[]>('/categories');
-  return data;
+export const createNote = async (data: CreateNoteDto): Promise<NoteWithTag> => {
+  const category = categoriesCache.find(c => c.name === data.tag);
+  if (!category) throw new Error(`Unknown tag: ${data.tag}`);
+
+  const payload = {
+    title: data.title,
+    content: data.content,
+    categoryId: category.id,
+  };
+
+  const response = await api.post<Note, AxiosResponse<Note>, typeof payload>('/notes', payload);
+  return { ...response.data, tag: data.tag };
+};
+
+export const deleteNote = async (id: string): Promise<NoteWithTag> => {
+  const { data } = await api.delete<Note>(`/notes/${id}`);
+  return { ...data, tag: data.category?.name };
 };

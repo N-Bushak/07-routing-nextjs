@@ -1,6 +1,7 @@
+
 export interface Category {
-  id: string;   
-  name: string; 
+  id: string;
+  name: string;
 }
 
 export interface Note {
@@ -9,12 +10,16 @@ export interface Note {
   content: string;
   createdAt: string;
   updatedAt: string;
-  categoryId: string;   
-  category?: Category;  
+  categoryId: string;
+  category?: Category;
 }
 
 export interface NewNote {
   title: string;
   content: string;
-  categoryId: string;   
+  categoryId: string;
+}
+
+export interface NoteWithTag extends Note {
+  tag: string;
 }

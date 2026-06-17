@@ -9,23 +9,20 @@ import NotesClient from './Notes.client';
 export default async function NotesPage({
   params,
 }: {
-  params: Promise<{ slug?: string[] }>;
+  params: { slug?: string[] };
 }) {
-
-  const { slug } = await params;
+  const slug = params.slug ?? [];
+  const tag = slug.length > 0 ? slug[0] : 'all';
 
   const queryClient = new QueryClient();
-
-  const categoryId = slug?.[0] ?? 'all';
-
   await queryClient.prefetchQuery({
-    queryKey: ['notes', categoryId],
-    queryFn: () => fetchNotes(1, 12, '', categoryId),
+    queryKey: ['notes', tag],
+    queryFn: () => fetchNotes(1, 12, '', tag),
   });
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
-      <NotesClient categoryId={categoryId} />
+      <NotesClient tag={tag} />
     </HydrationBoundary>
   );
 }

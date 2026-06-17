@@ -2,7 +2,8 @@ import { ErrorMessage, Field, Form, Formik, type FormikHelpers } from 'formik';
 import css from './NoteForm.module.css';
 import { useId } from 'react';
 import * as Yup from 'yup';
-import { createNote, fetchCategories, type Category } from '@/lib/api';
+import { createNote, fetchCategories } from '@/lib/api';
+import { type Category } from '@/types/note';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 interface NoteFormProps {
@@ -12,13 +13,13 @@ interface NoteFormProps {
 interface NewNote {
   title: string;
   content: string;
-  categoryId: string;
+  tag: string;
 }
 
 const initialValues: NewNote = {
   title: '',
   content: '',
-  categoryId: '', 
+  tag: '',
 };
 
 const FormSchema = Yup.object().shape({
@@ -27,7 +28,7 @@ const FormSchema = Yup.object().shape({
     .max(50, 'Title too long')
     .required('Title is required'),
   content: Yup.string().max(500, 'Content is too long'),
-  categoryId: Yup.string().required('Category is required'),
+  tag: Yup.string().required('Category is required'),
 });
 
 export default function NoteForm({ onClose }: NoteFormProps) {
@@ -91,17 +92,17 @@ export default function NoteForm({ onClose }: NoteFormProps) {
           <Field
             as="select"
             id={`${fieldID}-category`}
-            name="categoryId"
+            name="tag"
             className={css.select}
           >
             <option value="">Select category</option>
             {categories.map((cat: Category) => (
-              <option key={cat.id} value={cat.id}>
+              <option key={cat.id} value={cat.name}>
                 {cat.name}
               </option>
             ))}
           </Field>
-          <ErrorMessage component="span" name="categoryId" className={css.error} />
+          <ErrorMessage component="span" name="tag" className={css.error} />
         </div>
 
         <div className={css.actions}>
