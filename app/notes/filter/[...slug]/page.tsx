@@ -6,11 +6,17 @@ import {
 import { fetchNotes } from '@/lib/api';
 import NotesClient from './Notes.client';
 
-export default async function NotesPage({ params }: { params: { slug?: string[] } }) {
+export default async function NotesPage({
+  params,
+}: {
+  params: Promise<{ slug?: string[] }>;
+}) {
+
+  const { slug } = await params;
+
   const queryClient = new QueryClient();
 
-  const slugArray = params.slug || [];
-  const categoryId = slugArray.length > 0 ? slugArray[0] : 'all';
+  const categoryId = slug?.[0] ?? 'all';
 
   await queryClient.prefetchQuery({
     queryKey: ['notes', categoryId],
