@@ -4,7 +4,7 @@ import { Note } from '@/types/note';
 interface CreateNoteDto {
   title: string;
   content: string;
-  tag: string;
+  categoryId: string; 
 }
 
 const api = axios.create({
@@ -22,11 +22,23 @@ export interface FetchNotesResponse {
 export const fetchNotes = async (
   page: number = 1,
   perPage: number = 12,
-  search: string = ''
+  search: string = '',
+  categoryId?: string
 ): Promise<FetchNotesResponse> => {
-  const { data } = await api.get<FetchNotesResponse>('/notes', {
-    params: { page, perPage, search },
-  });
+  const params: Record<string, string | number> = {
+    page,
+    perPage,
+  };
+
+  if (search) {
+    params.search = search;
+  }
+
+  if (categoryId && categoryId !== 'all') {
+    params.categoryId = categoryId;
+  }
+
+  const { data } = await api.get<FetchNotesResponse>('/notes', { params });
   return data;
 };
 
@@ -42,5 +54,15 @@ export const createNote = async (data: CreateNoteDto): Promise<Note> => {
 
 export const deleteNote = async (id: string): Promise<Note> => {
   const { data } = await api.delete<Note>(`/notes/${id}`);
+  return data;
+};
+
+export interface Category {
+  id: string;
+  name: string;
+}
+
+export const fetchCategories = async (): Promise<Category[]> => {
+  const { data } = await api.get<Category[]>('/categories');
   return data;
 };

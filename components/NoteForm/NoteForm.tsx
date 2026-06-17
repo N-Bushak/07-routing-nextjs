@@ -2,24 +2,23 @@ import { ErrorMessage, Field, Form, Formik, type FormikHelpers } from 'formik';
 import css from './NoteForm.module.css';
 import { useId } from 'react';
 import * as Yup from 'yup';
-import type { NewNote } from '@/types/note'; 
-import { createNote } from '@/lib/api';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { createNote, fetchCategories, type Category } from '@/lib/api';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 interface NoteFormProps {
   onClose: () => void;
 }
 
-interface LocalPayload {
+interface NewNote {
   title: string;
   content: string;
-  tag: string;
+  categoryId: string;
 }
 
 const initialValues: NewNote = {
   title: '',
   content: '',
-  tag: 'Todo',
+  categoryId: '', 
 };
 
 const FormSchema = Yup.object().shape({
@@ -28,17 +27,20 @@ const FormSchema = Yup.object().shape({
     .max(50, 'Title too long')
     .required('Title is required'),
   content: Yup.string().max(500, 'Content is too long'),
-  tag: Yup.string()
-    .oneOf(['Todo', 'Work', 'Personal', 'Meeting', 'Shopping'], 'Invalid tag')
-    .required('Tag is required'),
+  categoryId: Yup.string().required('Category is required'),
 });
 
 export default function NoteForm({ onClose }: NoteFormProps) {
   const fieldID = useId();
   const queryClient = useQueryClient();
 
+  const { data: categories = [] } = useQuery({
+    queryKey: ['categories'],
+    queryFn: fetchCategories,
+  });
+
   const mutation = useMutation({
-    mutationFn: (payload: LocalPayload) => createNote(payload),
+    mutationFn: (payload: NewNote) => createNote(payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['notes'] });
       onClose();
@@ -49,14 +51,8 @@ export default function NoteForm({ onClose }: NoteFormProps) {
   });
 
   const handleSubmit = (values: NewNote, actions: FormikHelpers<NewNote>) => {
-    const payload: LocalPayload = {
-      title: values.title,
-      content: values.content,
-      tag: values.tag,
-    }
-
-    mutation.mutate(payload, {
-      onSuccess: () => actions.resetForm(), 
+    mutation.mutate(values, {
+      onSuccess: () => actions.resetForm(),
     });
   };
 
@@ -91,20 +87,21 @@ export default function NoteForm({ onClose }: NoteFormProps) {
         </div>
 
         <div className={css.formGroup}>
-          <label htmlFor={`${fieldID}-tag`}>Tag</label>
+          <label htmlFor={`${fieldID}-category`}>Category</label>
           <Field
             as="select"
-            id={`${fieldID}-tag`}
-            name="tag"
+            id={`${fieldID}-category`}
+            name="categoryId"
             className={css.select}
           >
-            <option value="Todo">Todo</option>
-            <option value="Work">Work</option>
-            <option value="Personal">Personal</option>
-            <option value="Meeting">Meeting</option>
-            <option value="Shopping">Shopping</option>
+            <option value="">Select category</option>
+            {categories.map((cat: Category) => (
+              <option key={cat.id} value={cat.id}>
+                {cat.name}
+              </option>
+            ))}
           </Field>
-          <ErrorMessage component="span" name="tag" className={css.error} />
+          <ErrorMessage component="span" name="categoryId" className={css.error} />
         </div>
 
         <div className={css.actions}>

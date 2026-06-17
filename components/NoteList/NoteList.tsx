@@ -34,16 +34,18 @@ const NoteList: React.FC<NoteListProps> = ({
   if (notes.length === 0 && !isUpdating) return <EmptyState />;
 
   return (
-   <ul className={`${css.list} ${isUpdating ? css.updating : ''}`}>
+    <ul className={`${css.list} ${isUpdating ? css.updating : ''}`}>
       {notes.map((note: Note) => (
         <li key={note.id} className={css.listItem}>
           <h2 className={css.title}>{note.title}</h2>
           <p className={css.content}>{note.content}</p>
           <div className={css.footer}>
-            <span className={css.tag}>{note.tag}</span>
+            <span className={css.tag}>
+              {note.category ? note.category.name : note.categoryId}
+            </span>
             <Link href={`/notes/${note.id}`} className={css.link}>
-    View details
-  </Link>
+              View details
+            </Link>
             <button 
               className={css.button} 
               onClick={() => mutation.mutate(note.id)}
