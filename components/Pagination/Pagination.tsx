@@ -3,11 +3,13 @@ import ReactPaginateModule from "react-paginate";
 import type { ReactPaginateProps } from "react-paginate";
 import css from './Pagination.module.css';
 
-type ModuleWithDefault<T> = { default: T };
-const ReactPaginate = (
-  ReactPaginateModule as unknown as ModuleWithDefault<ComponentType<ReactPaginateProps>>
-).default;
+const unknownModule = ReactPaginateModule as unknown;
 
+const ReactPaginate = (
+  typeof unknownModule === 'object' && unknownModule !== null && 'default' in unknownModule
+    ? (unknownModule as { default: ComponentType<ReactPaginateProps> }).default
+    : (ReactPaginateModule as ComponentType<ReactPaginateProps>)
+);
 interface PaginationProps {
   pageCount: number;
   currentPage: number;

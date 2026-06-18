@@ -18,7 +18,7 @@ interface NewNote {
 const initialValues: NewNote = {
   title: '',
   content: '',
-  tag: '',
+  tag: 'todo', 
 };
 
 const FormSchema = Yup.object().shape({
@@ -26,7 +26,9 @@ const FormSchema = Yup.object().shape({
     .min(3, 'Title too short')
     .max(50, 'Title too long')
     .required('Title is required'),
-  content: Yup.string().max(500, 'Content is too long'),
+  content: Yup.string()
+    .max(500, 'Content is too long')
+    .required('Content is required'), 
   tag: Yup.string().required('Tag is required'),
 });
 
@@ -84,12 +86,17 @@ export default function NoteForm({ onClose }: NoteFormProps) {
         <div className={css.formGroup}>
           <label htmlFor={`${fieldID}-tag`}>Tag</label>
           <Field
+            as="select" 
             id={`${fieldID}-tag`}
-            type="text"
             name="tag"
             className={css.input}
-            placeholder="Enter tag (e.g. Work, Personal)"
-          />
+          >
+            <option value="todo">Todo</option>
+            <option value="work">Work</option>
+            <option value="personal">Personal</option>
+            <option value="meeting">Meeting</option>
+            <option value="shopping">Shopping</option>
+          </Field>
           <ErrorMessage component="span" name="tag" className={css.error} />
         </div>
 

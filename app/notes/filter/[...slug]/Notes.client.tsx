@@ -19,7 +19,7 @@ export default function NotesClient({ tag }: NotesClientProps) {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const perPage = 12;
+  // const perPage = 12;
 
   const debouncedSearch = useDebouncedCallback((value: string) => {
     setSearch(value);
@@ -27,11 +27,11 @@ export default function NotesClient({ tag }: NotesClientProps) {
   }, 500);
 
   const { data, isLoading, isError, isPlaceholderData } = useQuery({
-    queryKey: ['notes', page, search, tag],
-    queryFn: () => fetchNotes(page, perPage, search, tag),
-    placeholderData: keepPreviousData,
-    refetchOnMount: false,
-  });
+  queryKey: ['notes', page, search, tag],
+  queryFn: () => fetchNotes(search, page, tag), 
+  placeholderData: keepPreviousData,
+  refetchOnMount: false,
+});
 
   const notes = data?.notes || [];
   const pageCount = data?.totalPages || 0;

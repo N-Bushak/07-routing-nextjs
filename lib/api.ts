@@ -1,14 +1,7 @@
-import axios, { AxiosResponse } from 'axios';
-import { Note } from '@/types/note';
+import axios, { isAxiosError } from "axios";
+import type { NewNote, Note } from "../types/note";
 
-export interface NoteWithTag extends Note {
-  tag: string;
-}
-
-export interface FetchNotesResponse {
-  notes: NoteWithTag[];
-  totalPages: number;
-}
+const PER_PAGE = 12;
 
 const api = axios.create({
   baseURL: 'https://notehub-public.goit.study/api',
@@ -17,40 +10,53 @@ const api = axios.create({
   },
 });
 
-export const fetchNotes = async (
-  page: number = 1,
-  perPage: number = 12,
-  search: string = '',
-  tag?: string
-): Promise<FetchNotesResponse> => {
-  const params: Record<string, string | number> = { page, perPage };
-  if (search) params.search = search;
-  if (tag && tag !== 'all') params.tag = tag;
-
-  const { data } = await api.get<FetchNotesResponse>('/notes', { params });
-  return data;
-};
-
-export const fetchNoteById = async (id: string): Promise<NoteWithTag> => {
-  const { data } = await api.get<NoteWithTag>(`/notes/${id}`);
-  return data;
-};
-
-interface CreateNoteDto {
-  title: string;
-  content: string;
-  tag: string;
+interface NoteSearch {
+  notes: Note[];
+  totalPages: number;
 }
 
-export const createNote = async (data: CreateNoteDto): Promise<NoteWithTag> => {
-  const response = await api.post<NoteWithTag, AxiosResponse<NoteWithTag>, CreateNoteDto>(
-    '/notes',
-    data
-  );
-  return response.data;
+const formatTag = (tag: string): string => {
+  const trimmed = tag.trim();
+  return trimmed.charAt(0).toUpperCase() + trimmed.slice(1).toLowerCase();
 };
 
-export const deleteNote = async (id: string): Promise<NoteWithTag> => {
-  const { data } = await api.delete<NoteWithTag>(`/notes/${id}`);
+export async function fetchNotes(searchQuery: string, pageNumber: number, tag?: string): Promise<NoteSearch> {
+  const params: Record<string, string | number> = {
+    page: pageNumber,
+    perPage: PER_PAGE,
+  };
+
+  if (searchQuery) params.search = searchQuery;
+  if (tag && tag !== 'all') params.tag = tag;
+
+  const { data } = await api.get<NoteSearch>('/notes', { params });
   return data;
-};
+}
+
+export async function createNote(newNoteContent: NewNote): Promise<Note> {
+  const payload = {
+    title: newNoteContent.title.trim(),
+    content: newNoteContent.content.trim(),
+    tag: formatTag(newNoteContent.tag), 
+  };
+
+  try {
+    const { data } = await api.post<Note>('/notes', payload);
+    return data;
+  } catch (error: unknown) {
+    if (isAxiosError(error) && error.response?.data) {
+      throw new Error(error.response.data.message || "Validation failed");
+    }
+    throw error;
+  }
+}
+
+export async function deleteNote(noteToDeleteId: Note['id']): Promise<Note> {
+  const { data } = await api.delete<Note>(`/notes/${noteToDeleteId}`);
+  return data;
+}
+
+export async function fetchNoteById(id: Note['id']): Promise<Note> {
+  const { data } = await api.get<Note>(`/notes/${id}`);
+  return data;
+}
