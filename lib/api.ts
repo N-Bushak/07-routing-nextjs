@@ -10,6 +10,8 @@ const api = axios.create({
   },
 });
 
+export type NoteWithTag = Note;
+
 interface NoteSearch {
   notes: Note[];
   totalPages: number;
